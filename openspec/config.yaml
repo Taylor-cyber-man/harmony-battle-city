@@ -1,0 +1,206 @@
+schema: spec-driven
+
+context: |
+  # 项目背景
+  本项目是"鸿蒙应用开发与实践"课程（2025-2026 学年第二学期）的工程化作业，
+  要求使用 HarmonyOS DevEco Studio 6.02 + ArkTS 语言完整复刻 1985 年经典游戏 Battle City（坦克大战）。
+
+  ## 技术栈
+  - 开发环境: DevEco Studio 6.02 (API 22, SDK 6.0.2)
+  - 编程语言: ArkTS (TypeScript for HarmonyOS, 严格模式)
+  - 目标 API: API 22 (targetSdkVersion 6.0.2(22))
+  - 兼容 API: API 9+（设备兼容范围，作业要求 API 9+ 设备正常运行）; 目标 API: API 22 (targetSdkVersion 6.0.2(22))
+  - 运行环境: HarmonyOS (phone 设备类型)
+  - 应用框架: Stage 模式 (apiType: stageMode)
+  - UI 框架: ArkUI 声明式 UI (Canvas 2D 实现游戏渲染)
+  - 构建系统: hvigor
+  - 代码检查: ESLint + code-linter.json5
+  - 规范化工具: OpenSpec (spec-driven 模式)
+
+  ## 项目信息
+  - 项目名称: Battle City 1985 复刻
+  - Bundle Name: com.example.myapplication
+  - 模块结构: entry (主模块)
+  - 源代码路径: entry/src/main/ets/
+  - 资源路径: entry/src/main/resources/
+  - OpenSpec 规范目录: openspec/
+
+  ## 领域知识: Battle City 1985
+  - 游戏类型: 俯视角坦克射击游戏 (Top-Down Tank Shooter)
+  - 核心玩法: 玩家操控坦克在关卡中移动，消灭所有敌方坦克，保护基地（鹰）不被摧毁
+  - 8 方向移动: 上、下、左、右及四个对角线方向
+  - 敌方 AI 类型: 至少 3 种 (普通型、快速型、重型/装甲型)
+  - 地形类型: 空地、砖墙（可破坏）、钢墙（不可破坏）、水域（坦克不可通过但子弹可通过）、森林（隐藏坦克）
+  - 基地: 位于关卡底部中央，被砖墙包围，被摧毁则游戏失败
+  - 能量提升: 至少 4 种（加速、护盾、火力增强、额外生命等）
+  - 关卡数量: 至少 10 关，至少实现前 3 关完整可玩
+
+  ## 提交目录结构（作业 §5 要求）
+  最终提交压缩包 `BattleCity_StudentID_Name.zip` 需包含:
+  ```
+  BattleCity_StudentID_Name.zip
+  ├── BattleCity/                    # DevEco Studio 项目目录
+  │   ├── entry/                    # 主模块
+  │   ├── AppScope/                 # 应用级配置
+  │   ├── oh_modules/              # 依赖模块
+  │   ├── openspec/                 # OpenSpec 规范目录
+  │   │   ├── specs/battle-city/spec.md
+  │   │   ├── changes/battle-city/proposal.md
+  │   │   ├── changes/battle-city/design.md
+  │   │   ├── changes/battle-city/tasks.md
+  │   │   └── config.yaml
+  │   └── hvigor/                   # 构建配置
+  ├── UI_Demo/                      # UI 设计文档（独立交付，20分）
+  │   ├── UI_Design.pdf            # UI 设计稿（含不同状态截图）
+  │   └── UI_Interaction_Flow.md   # 交互流程图
+  ├── Video/                        # 演示视频（独立交付，20分）
+  │   └── BattleCity_Demo.mp4      # 1080p+ 屏幕录制，3-5分钟
+  ├── README.md                     # 项目说明文档
+  └── Report.pdf                    # 项目报告（可选）
+  ```
+
+  ## 架构设计原则
+  - 游戏循环: 60 FPS 主循环 (requestAnimationFrame 或 setInterval)
+  - 状态管理: 有限状态机 (FSM) 管理游戏状态（菜单、加载、运行、暂停、关卡切换、结束）
+  - 渲染: 使用 Canvas 2D (CanvasRenderingContext2D) 进行游戏画面绘制
+  - 碰撞检测: AABB (Axis-Aligned Bounding Box) 矩形碰撞检测
+  - AI 系统: 基于规则的有限状态机 + 简单寻路
+  - 资源管理: 使用 HarmonyOS resourceManager 加载图片/音频资源
+  - 数据持久化: 使用 Preferences 存储键值对（关卡进度、最高分）
+
+  ## 性能要求
+  - 目标帧率: 60 FPS
+  - 最低帧率: 不低于 30 FPS
+  - 内存使用: 合理控制，避免内存泄漏
+  - 渲染优化: 脏矩形重绘，避免全屏刷新
+
+  ## 编码规范
+  - 所有 import 语句必须放在文件最顶部
+  - 使用 let 声明变量，禁止 var
+  - 使用 const 声明常量（编译时常量表达式）
+  - 使用箭头函数代替函数表达式
+  - 使用 class 定义类型，不使用对象字面量作为类型声明
+  - 不使用 any/unknown 类型，所有类型必须显式声明
+  - 不使用解构赋值、解构参数、展开运算符（数组展开除外）
+  - 不使用索引签名、映射类型、条件类型
+  - 不使用 for...in 循环，使用常规 for 循环遍历数组
+  - 不使用 Function.apply/call/bind
+  - 不使用 Symbol() API (Symbol.iterator 除外)
+  - 不使用生成器函数，使用 async/await
+  - 不在独立函数和静态方法中使用 this
+  - 不支持动态字段声明，所有对象字段必须在类中提前声明
+  - 不支持 obj["field"] 索引访问，使用 obj.field
+  - 不支持交叉类型，使用继承替代
+  - 不支持结构化类型比较，使用继承/接口/类型别名
+  - 不支持命名空间用作对象
+  - 不支持嵌套函数，使用 lambda
+  - 不支持类字面量、不支持将类用作对象
+  - 实例方法中使用 private 关键字代替 # 私有标识符
+  - catch 子句省略类型标注
+  - 不直接使用对象字面量作为类型声明
+  - 类字段在类声明内部声明，不在构造函数中声明
+
+  ## 命名规范
+  - 类名: PascalCase (如 PlayerTank, EnemyAI)
+  - 函数/方法: camelCase (如 updatePosition, detectCollision)
+  - 变量: camelCase (如 playerSpeed, bulletCount)
+  - 常量: UPPER_SNAKE_CASE (如 MAX_ENEMIES, TILE_SIZE)
+  - 文件名: PascalCase (组件文件), camelCase (工具文件)
+  - 枚举类型: PascalCase, 枚举成员: UPPER_SNAKE_CASE
+
+  ## 代码组织
+  - entry/src/main/ets/
+    - components/     UI 组件 (@Component)
+    - game/           游戏核心逻辑
+      - core/         游戏引擎 (GameEngine, GameLoop, GameState)
+      - entities/     游戏实体 (Tank, Bullet, Terrain, PowerUp)
+      - systems/      游戏系统 (CollisionSystem, AISystem, SpawnSystem)
+      - levels/       关卡数据 (LevelData, LevelManager)
+      - utils/        工具函数 (MathUtils, RandomUtils)
+    - managers/       管理器 (AudioManager, StorageManager, ResourceManager)
+    - pages/          页面 (MainPage, GamePage, SettingPage)
+    - data/           数据模型 (ScoreData, LevelProgress)
+
+  ## 文档语言
+  - 所有 OpenSpec 规范文档使用中文编写
+  - 代码注释使用中文
+  - 标识符（变量、函数、类名）使用英文
+
+  ## 评分须知
+  - 功能完整性 30 分: 核心功能必须全部实现
+  - 代码质量 20 分: 结构清晰、注释完整、符合规范
+  - UI/UX 设计 15 分: 美观、流畅、符合 HarmonyOS 设计语言
+  - 工程化实践 20 分: OpenSpec 使用规范、项目结构合理
+  - 演示视频 10 分: 1080p+ 屏幕录制 MP4, 3-5 分钟
+  - 文档完整性 5 分: README、报告、OpenSpec 文档齐全
+  - 提交截止: 2026年5月28日 23:59
+
+  ## 额外加分项（最多+10分）
+  - 双人合作模式 (+5分): 同屏双人操控，两个虚拟摇杆
+  - 关卡编辑器 (+5分): 可视化编辑地形，导出/导入关卡数据
+  - 在线排行榜 (+5分): 上传分数，展示排名
+  - 性能优化优秀 (+5分): 帧率稳定 ≥ 55 FPS，内存占用低，无明显 GC 停顿
+  注: 核心功能优先完成，加分项在 P0/P1 任务全部完成后酌情实现。设计时可为加分项预留架构扩展点。
+
+rules:
+  proposal:
+    - 使用中文编写，格式规范，层次清晰
+    - 必须包含以下章节: 项目概述、核心目标、非目标（明确排除项）、技术方案概述、风险与应对、时间规划
+    - 项目概述需说明 Battle City 1985 复刻的背景和意义
+    - 核心目标需与作业要求的功能要求一一对应
+    - 技术方案需明确使用 Canvas 2D + ArkUI 混合方案
+    - 必须声明不使用第三方游戏引擎
+    - 保持与 spec.md 和 design.md 的一致性
+
+  design:
+    - 使用中文编写，包含架构图（可用 ASCII art 或 Mermaid）
+    - 必须包含以下章节: 总体架构、模块划分、数据流设计、游戏引擎设计、渲染系统设计、碰撞检测设计、AI 系统设计、关卡系统设计、UI 系统设计、数据持久化设计、性能优化策略
+    - 模块划分需与代码组织的目录结构一致
+    - 游戏引擎设计需详细说明 60 FPS 游戏循环的实现方案
+    - AI 系统设计需说明至少 3 种敌人类型的行为差异
+    - 碰撞检测需说明 AABB 算法及优化策略
+    - 数据流设计需说明组件间通信方式
+    - 所有设计决策需有清晰的理由说明
+
+  tasks:
+    - 使用中文编写，采用可执行的 checklist 格式
+    - 任务粒度: 每个任务预估 1-4 小时工作量
+    - 必须按开发阶段组织: 环境搭建 → 游戏引擎 → 实体系统 → AI → 关卡 → UI → 测试 → 文档
+    - 每个任务需标注优先级 (P0/P1/P2) 和预估工时
+    - P0 任务为核心功能，必须完成；P1 为重要功能；P2 为锦上添花
+    - 任务描述需具体、可验证，避免模糊描述
+    - 需包含测试任务和文档编写任务
+    - 需包含 OpenSpec 规范文档维护任务
+
+  spec:
+    - 使用中文编写，采用 GIVEN-WHEN-THEN 格式描述功能需求
+    - 必须包含以下领域的需求: 游戏引擎核心、玩家坦克控制、敌人 AI 系统、关卡设计系统、碰撞检测系统、得分和进度系统、能量提升系统、UI/UX 组件
+    - 每个需求需标注优先级和是否可验证
+    - 非功能性需求需包含: 性能（60 FPS 目标/30 FPS 最低）、兼容性（API 9+ phone 设备，目标 API 22）、可用性（触摸控制响应 < 100ms）
+    - 需求需与作业评分标准对齐
+    - 保持与 design.md 和 proposal.md 的一致性
+    - 所有需求必须可追溯、可测试
+
+  ui_demo:
+    - UI_Demo 是独立的作业交付物（20分），位于项目根目录 UI_Demo/ 下
+    - 交付文件列表:
+      - UI_Demo/UI_Design.pdf: 完整的 UI 设计稿
+      - UI_Demo/UI_Interaction_Flow.md: 交互流程说明文档
+    - UI_Design.pdf 必须包含:
+      - 主菜单界面设计（标题、开始按钮、设置入口）
+      - 游戏界面设计（Canvas 游戏区 + HUD 信息叠加层 + 触摸控制区）
+      - 暂停界面设计（暂停面板 + 继续/重开/退出按钮）
+      - 关卡完成界面设计（过关提示 + 得分汇总）
+      - 游戏结束界面设计（Game Over + 最终得分 + 返回主菜单）
+      - 设置界面设计（音量控制、控制方式切换等）
+      - 所有界面需标注 UI 组件名称、布局尺寸、颜色规范
+      - 需提供浅色/深色主题双版本设计（符合 HarmonyOS 设计语言）
+      - 设计稿分辨率基准: 1260x2720（phone 竖屏）
+    - UI_Interaction_Flow.md 必须包含:
+      - 完整的状态流转图（菜单 → 加载 → 游戏 → 暂停 → 关卡完成 → 结束）
+      - 每个界面到其他界面的跳转路径
+      - 触摸/手势交互说明（虚拟摇杆操作区域、射击按钮、菜单点击）
+      - 不同游戏状态下 HUD 显示/隐藏逻辑
+      - 弹窗/对话框的触发条件和交互方式
+    - UI 设计需符合 HarmonyOS Design 设计语言规范
+    - 设计稿需在代码实现前完成，作为 UI 开发的蓝图

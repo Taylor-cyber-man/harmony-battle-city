@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Battle City 音效生成器</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0D0D1A;
+    color: #E0E0E0;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .container {
+    max-width: 720px;
+    width: 100%;
+    background: #1A1A2E;
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 32px;
+  }
+  h1 {
+    text-align: center;
+    color: #FF9800;
+    font-size: 24px;
+    margin-bottom: 4px;
+    letter-spacing: 2px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    margin-bottom: 24px;
+  }
+  .section {
+    margin-bottom: 28px;
+  }
+  .section-title {
+    font-size: 16px;
+    color: #4FC3F7;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #333;
+    margin-bottom: 14px;
+  }
+  .sound-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .bgm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .sound-card {
+    background: #16213E;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: border-color 0.2s;
+  }
+  .sound-card:hover { border-color: #FF9800; }
+  .sound-info { display: flex; flex-direction: column; gap: 2px; }
+  .sound-name { font-size: 14px; font-weight: bold; }
+  .sound-desc { font-size: 11px; color: #888; }
+  .btn-group { display: flex; gap: 6px; }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 7px 13px;
+    transition: all 0.15s;
+  }
+  button:active { transform: scale(0.95); }
+  .btn-play { background: #1E90FF; color: #fff; }
+  .btn-play:hover { background: #4169E1; }
+  .btn-dl { background: #FF9800; color: #0D0D1A; }
+  .btn-dl:hover { background: #F57C00; }
+  .btn-dlall {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    background: #4CAF50;
+    color: #fff;
+    margin-top: 16px;
+  }
+  .btn-dlall:hover { background: #388E3C; }
+  .btn-stop { background: #E53935; color: #fff; padding: 7px 18px; font-size: 12px; }
+  .btn-stop:hover { background: #C62828; }
+  .bgm-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .status { text-align: center; color: #4CAF50; font-size: 13px; min-height: 20px; margin-top: 12px; }
+  .note {
+    text-align: center;
+    color: #666;
+    font-size: 11px;
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔊 BATTLE CITY SFX</h1>
+  <div class="subtitle">8-BIT 复古音效生成器 · 全部离线 · 零依赖</div>
+
+  <div class="section">
+    <div class="section-title">🎯 游戏音效 (Game SFX)</div>
+    <div class="sound-grid">
+      <div class="sound-card">
+        <div class="sound-info">
+          <span class="sound-name">🔫 开火射击</span>
+          <span class="sound-desc">50ms · 方波脉冲</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn-play" onclick="play('fire')">▶</button>
+          <button class="btn-dl" onclick="download('fire')">⬇</button>
+        </div>
+      </div>
+      <div class="sound-card">
+        <div class="sound-info">
+          <span class="sound-name">💥 爆炸</span>
+          <span class="sound-desc">300ms · 噪声衰减</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn-play" onclick="play('explosion')">▶</button>
+          <button class="btn-dl" onclick="download('explosion')">⬇</button>
+        </div>
+      </div>
+      <div class="sound-card">
+        <div class="sound-info">
+          <span class="sound-name">⭐ 道具收集</span>
+          <span class="sound-desc">180ms · 上行琶音</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn-play" onclick="play('powerup')">▶</button>
+          <button class="btn-dl" onclick="download('powerup')">⬇</button>
+        </div>
+      </div>
+      <div class="sound-card">
+        <div class="sound-info">
+          <span class="sound-name">🏆 过关胜利</span>
+          <span class="sound-desc">600ms · 上行音阶</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn-play" onclick="play('stageclear')">▶</button>
+          <button class="btn-dl" onclick="download('stageclear')">⬇</button>
+        </div>
+      </div>
+      <div class="sound-card" style="grid-column: span 2;">
+        <div class="sound-info">
+          <span class="sound-name">💀 游戏结束</span>
+          <span class="sound-desc">800ms · 下行小调</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn-play" onclick="play('gameover')">▶</button>
+          <button class="btn-dl" onclick="download('gameover')">⬇</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🎵 背景音乐 (BGM)</div>
+    <div class="bgm-grid">
+      <div class="sound-card">
+        <div class="sound-info">
+          <span class="sound-name">⚔️ 战斗 BGM</span>
+          <span class="sound-desc">循环 · 30s</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn-play" onclick="playBGM('battle')">▶</button>
+          <button class="btn-dl" onclick="downloadBGM('battle')">⬇</button>
+        </div>
+      </div>
+      <div class="sound-card">
+        <div class="sound-info">
+          <span class="sound-name">🏠 菜单 BGM</span>
+          <span class="sound-desc">循环 · 30s</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn-play" onclick="playBGM('menu')">▶</button>
+          <button class="btn-dl" onclick="downloadBGM('menu')">⬇</button>
+        </div>
+      </div>
+    </div>
+    <div class="bgm-controls">
+      <button class="btn-stop" onclick="stopBGM()">⏹ 停止</button>
+      <span style="color:#888;font-size:12px;">BGM 播放中不会自动停止，点停止按钮或等播放完后重新点击</span>
+    </div>
+  </div>
+
+  <button class="btn-dlall" onclick="downloadAll()">📦 一键下载全部音效 (ZIP 打包)</button>
+  <div class="status" id="status"></div>
+  <div class="note">
+    所有音效由 Web Audio API 实时合成生成，纯前端离线运行。<br>
+    点击 ⬇ 下载 .wav 文件，放入 entry/src/main/resources/rawfile/ 目录即可使用。
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const SAMPLE_RATE = 44100;
+const BGM_SAMPLE_RATE = 44100;
+
+let bgmSource = null;
+let bgmNode = null;
+
+function status(msg) {
+  document.getElementById('status').textContent = msg;
+  setTimeout(() => { document.getElementById('status').textContent = ''; }, 2000);
+}
+
+function floatTo16BitPCM(samples) {
+  const buf = new ArrayBuffer(samples.length * 2);
+  const view = new DataView(buf);
+  for (let i = 0; i < samples.length; i++) {
+    let s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+  return new Uint8Array(buf);
+}
+
+function encodeWAV(samples, sampleRate) {
+  const pcm = floatTo16BitPCM(samples);
+  const buffer = new ArrayBuffer(44 + pcm.length);
+  const view = new DataView(buffer);
+
+  const write = (off, str) => { for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i)); };
+  write(0, 'RIFF');
+  view.setUint32(4, 36 + pcm.length, true);
+  write(8, 'WAVE');
+  write(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  write(36, 'data');
+  view.setUint32(40, pcm.length, true);
+  return new Blob([new Uint8Array(buffer, 0, 44), pcm], { type: 'audio/wav' });
+}
+
+function generateFire() {
+  const dur = 0.05;
+  const n = Math.floor(SAMPLE_RATE * dur);
+  const samples = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const t = i / SAMPLE_RATE;
+    const env = 1 - t / dur;
+    const freq = 800 - (300 * t / dur);
+    const phase = (t * freq * 2 * Math.PI) % (2 * Math.PI);
+    samples[i] = (phase < Math.PI ? 1 : -1) * env * 0.4;
+  }
+  return samples;
+}
+
+function generateExplosion() {
+  const dur = 0.3;
+  const n = Math.floor(SAMPLE_RATE * dur);
+  const samples = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const t = i / SAMPLE_RATE;
+    const env = Math.exp(-t * 10);
+    const noise = Math.random() * 2 - 1;
+    const low = Math.sin(t * 80 * 2 * Math.PI) * 0.3;
+    samples[i] = (noise * 0.6 + low) * env * 0.5;
+  }
+  return samples;
+}
+
+function generatePowerUp() {
+  const notes = [523.25, 659.25, 783.99];
+  const noteDur = 0.06;
+  const total = notes.length * noteDur;
+  const n = Math.floor(SAMPLE_RATE * total);
+  const samples = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const t = i / SAMPLE_RATE;
+    const noteIdx = Math.floor(t / noteDur);
+    const noteT = t - noteIdx * noteDur;
+    const env = noteT < 0.01 ? noteT / 0.01 : 1 - (noteT - 0.01) / (noteDur - 0.01);
+    const freq = notes[Math.min(noteIdx, notes.length - 1)];
+    samples[i] = Math.sin(t * freq * 2 * Math.PI) * env * 0.3;
+  }
+  return samples;
+}
+
+function generateStageClear() {
+  const scale = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50];
+  const noteDur = 0.075;
+  const n = Math.floor(SAMPLE_RATE * scale.length * noteDur);
+  const samples = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const t = i / SAMPLE_RATE;
+    const noteIdx = Math.min(Math.floor(t / noteDur), scale.length - 1);
+    const env = 1 - (t / (scale.length * noteDur)) * 0.5;
+    const freq = scale[noteIdx];
+    const sawPhase = (t * freq) % 1;
+    const saw = (sawPhase - 0.5) * 2;
+    samples[i] = saw * env * 0.2 + Math.sin(t * freq * 2 * Math.PI) * env * 0.15;
+  }
+  return samples;
+}
+
+function generateGameOver() {
+  const notes = [
+    { freq: 330, dur: 0.25 },
+    { freq: 262, dur: 0.25 },
+    { freq: 220, dur: 0.35 },
+  ];
+  let totalDur = 0;
+  for (const n of notes) totalDur += n.dur;
+  const n = Math.floor(SAMPLE_RATE * totalDur);
+  const samples = new Float32Array(n);
+  let cursor = 0;
+  for (const note of notes) {
+    const m = Math.floor(SAMPLE_RATE * note.dur);
+    for (let i = 0; i < m && cursor + i < n; i++) {
+      const t = i / SAMPLE_RATE;
+      const env = Math.max(0, 1 - t / note.dur);
+      const freq = note.freq;
+      const sqr = ((t * freq) % 1 < 0.5) ? 1 : -1;
+      samples[cursor + i] = sqr * env * 0.35;
+    }
+    cursor += m;
+  }
+  return samples;
+}
+
+const generators = {
+  fire: generateFire,
+  explosion: generateExplosion,
+  powerup: generatePowerUp,
+  stageclear: generateStageClear,
+  gameover: generateGameOver,
+};
+
+function getAudioCtx() {
+  return new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function play(name) {
+  const gen = generators[name];
+  if (!gen) return;
+  const samples = gen();
+  const ctx = getAudioCtx();
+  const buf = ctx.createBuffer(1, samples.length, SAMPLE_RATE);
+  buf.getChannelData(0).set(samples);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(ctx.destination);
+  src.start(0);
+  status('▶ 正在播放: ' + name);
+}
+
+function download(name) {
+  const gen = generators[name];
+  if (!gen) return;
+  const samples = gen();
+  const blob = encodeWAV(samples, SAMPLE_RATE);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sfx_' + name + '.wav';
+  a.click();
+  URL.revokeObjectURL(url);
+  status('⬇ 已下载: sfx_' + name + '.wav');
+}
+
+function generateBattleBGM() {
+  const dur = 30;
+  const n = Math.floor(BGM_SAMPLE_RATE * dur);
+  const samples = new Float32Array(n);
+  const tempo = 150;
+  const beatDur = 60 / tempo;
+
+  const bassLine = [
+    110, 110, 110, 110, 110, 110, 110, 110,
+    130.81, 130.81, 130.81, 130.81, 130.81, 130.81, 130.81, 130.81,
+    146.83, 146.83, 146.83, 146.83, 146.83, 146.83, 146.83, 146.83,
+    138.59, 138.59, 138.59, 138.59, 138.59, 138.59, 138.59, 138.59,
+  ];
+
+  const melodyNotes = [
+    329.63, 329.63, 349.23, 392.00, 349.23, 329.63, 293.66, 261.63,
+    293.66, 329.63, 349.23, 392.00, 329.63, 293.66, 261.63, 293.66,
+    392.00, 440.00, 392.00, 349.23, 329.63, 293.66, 329.63, 349.23,
+    392.00, 349.23, 329.63, 293.66, 261.63, 293.66, 329.63, 261.63,
+  ];
+
+  for (let i = 0; i < n; i++) {
+    const t = i / BGM_SAMPLE_RATE;
+    const beatIdx = Math.floor(t / beatDur) % bassLine.length;
+    const bassFreq = bassLine[beatIdx];
+    const melFreq = melodyNotes[beatIdx % melodyNotes.length];
+
+    const beatPhase = (t / beatDur) % 1;
+    const bassEnv = Math.min(1, (1 - beatPhase) * 3);
+    const bass = ((t * bassFreq) % 1 < 0.5 ? 1 : -1) * bassEnv * 0.08;
+    const bass2 = Math.sin(t * bassFreq * 2 * Math.PI) * bassEnv * 0.04;
+
+    const melEnv = Math.max(0, 1 - beatPhase * 1.5);
+    const melSqr = ((t * melFreq) % 1 < 0.5 ? 1 : -1) * melEnv * 0.06;
+    const melSaw = (((t * melFreq) % 1) - 0.5) * 2 * melEnv * 0.03;
+
+    const kickEnv = beatPhase < 0.08 ? Math.sin(beatPhase / 0.08 * Math.PI) : 0;
+    const kick = (Math.sin(t * 60 * 2 * Math.PI * (1 - beatPhase * 30)) * 0.5 + Math.random() * 0.5 * (1 - beatPhase * 20)) * kickEnv * 0.35;
+
+    const hiHat = (beatPhase % 0.5 < 0.05 ? Math.random() * 0.1 * (1 - (beatPhase % 0.5) / 0.05) : 0);
+
+    samples[i] = bass + bass2 + melSqr + melSaw + kick + hiHat;
+  }
+  return samples;
+}
+
+function generateMenuBGM() {
+  const dur = 30;
+  const n = Math.floor(BGM_SAMPLE_RATE * dur);
+  const samples = new Float32Array(n);
+  const tempo = 100;
+  const beatDur = 60 / tempo;
+
+  const chords = [
+    [261.63, 329.63, 392.00],
+    [293.66, 349.23, 440.00],
+    [329.63, 392.00, 493.88],
+    [261.63, 329.63, 392.00],
+    [349.23, 440.00, 523.25],
+    [293.66, 349.23, 440.00],
+    [261.63, 329.63, 392.00],
+    [246.94, 329.63, 392.00],
+  ];
+
+  const padNotes = [
+    261.63, 392.00, 329.63, 523.25,
+    293.66, 440.00, 349.23, 493.88,
+    329.63, 493.88, 392.00, 587.33,
+    261.63, 392.00, 293.66, 440.00,
+  ];
+
+  const beatsPerChord = 4;
+
+  for (let i = 0; i < n; i++) {
+    const t = i / BGM_SAMPLE_RATE;
+    const chordIdx = Math.floor(t / (beatDur * beatsPerChord)) % chords.length;
+    const chordPhase = (t / (beatDur * beatsPerChord)) % 1;
+    const chord = chords[chordIdx];
+
+    let chordSound = 0;
+    for (let c = 0; c < chord.length; c++) {
+      const freq = chord[c];
+      chordSound += Math.sin(t * freq * 2 * Math.PI) * 0.025;
+      chordSound += ((t * freq * 2.001) % 1 < 0.5 ? 1 : -1) * 0.015;
+    }
+    const chordEnv = Math.min(1, (1 - chordPhase) * 3 + 0.3);
+    chordSound *= chordEnv;
+
+    const beatCycle = Math.floor(t / beatDur);
+    const beatPhase = (t / beatDur) % 1;
+
+    const padIdx = beatCycle % padNotes.length;
+    const padFreq = padNotes[padIdx];
+    const pad = Math.sin(t * padFreq * 2 * Math.PI) * 0.06 * chordEnv;
+
+    const kick = Math.sin(t * 50 * 2 * Math.PI * (1 - beatPhase * 25)) * 0.3 * (beatPhase < 0.08 ? Math.sin(beatPhase / 0.08 * Math.PI) : 0);
+
+    const hiHat = (beatPhase % 0.5 < 0.04 ? Math.random() * 0.08 * (1 - (beatPhase % 0.5) / 0.04) : 0);
+
+    samples[i] = chordSound + pad + kick + hiHat;
+  }
+  return samples;
+}
+
+const bgmGenerators = {
+  battle: generateBattleBGM,
+  menu: generateMenuBGM,
+};
+
+function playBGM(name) {
+  stopBGM();
+  const gen = bgmGenerators[name];
+  if (!gen) return;
+  const samples = gen();
+  const ctx = getAudioCtx();
+  const buf = ctx.createBuffer(1, samples.length, BGM_SAMPLE_RATE);
+  buf.getChannelData(0).set(samples);
+  bgmSource = ctx.createBufferSource();
+  bgmSource.buffer = buf;
+  bgmSource.loop = true;
+  bgmSource.connect(ctx.destination);
+  bgmSource.start(0);
+  status('▶ 正在播放 BGM: ' + name + ' (循环)');
+}
+
+function stopBGM() {
+  if (bgmSource) {
+    try { bgmSource.stop(); } catch(e) {}
+    bgmSource = null;
+  }
+  status('⏹ BGM 已停止');
+}
+
+function downloadBGM(name) {
+  const gen = bgmGenerators[name];
+  if (!gen) return;
+  const samples = gen();
+  const blob = encodeWAV(samples, BGM_SAMPLE_RATE);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'bgm_' + name + '.wav';
+  a.click();
+  URL.revokeObjectURL(url);
+  status('⬇ 已下载: bgm_' + name + '.wav');
+}
+
+async function downloadAll() {
+  status('⏳ 正在打包...');
+  const sfxNames = ['fire', 'explosion', 'powerup', 'stageclear', 'gameover'];
+  const bgmNames = ['battle', 'menu'];
+
+  try {
+    const JSZip = await loadJSZip();
+    const zip = new JSZip();
+
+    for (const name of sfxNames) {
+      const gen = generators[name];
+      if (!gen) continue;
+      const samples = gen();
+      const blob = encodeWAV(samples, SAMPLE_RATE);
+      zip.file('sfx_' + name + '.wav', blob, { binary: true });
+    }
+
+    for (const name of bgmNames) {
+      const gen = bgmGenerators[name];
+      if (!gen) continue;
+      const samples = gen();
+      const blob = encodeWAV(samples, BGM_SAMPLE_RATE);
+      zip.file('bgm_' + name + '.wav', blob, { binary: true });
+    }
+
+    const content = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(content);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'battle_city_sfx.zip';
+    a.click();
+    URL.revokeObjectURL(url);
+    status('✅ 全部音效已打包下载！');
+  } catch (e) {
+    status('❌ 打包失败: ' + e.message);
+  }
+}
+
+let _jszip = null;
+function loadJSZip() {
+  if (_jszip) return _jszip;
+  return new Promise((resolve, reject) => {
+    if (window.JSZip) { resolve(window.JSZip); return; }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    script.onload = () => resolve(window.JSZip);
+    script.onerror = () => reject(new Error('CDN 加载失败，请单独下载每个音效'));
+    document.head.appendChild(script);
+  });
+}
+</script>
+</body>
+</html>
